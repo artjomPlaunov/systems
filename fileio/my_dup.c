@@ -12,9 +12,24 @@
 int my_dup(int oldfd) {
   int newfd;
   if ((newfd = fcntl(oldfd, F_DUPFD)) == -1) {
-    errExit("fcntl(%d, F_DUPFD) error", oldfd);
+    errExit("my_dup(): fcntl(%d, F_DUPFD) error", oldfd);
   }
   return newfd;
+}
+
+int my_dup2(int oldfd, int newfd) {
+  if (fcntl(oldfd, F_GETFL) == -1)
+    errExit("my_dup2(): fcntl(%d, F_GETFL) error", oldfd);
+  if (oldfd == newfd)
+    return oldfd;
+  if (fcntl(newfd, F_GETFL) >= 0) {
+    int ignore_err = close(newfd);
+  }
+  if (fcntl(oldfd, F_DUPFD, newfd) != newfd)
+    errExit("my_dup2(): fcntl(%d, F_DUPFD, %d error", oldfd, newfd);
+  return newfd;
+  
+
 }
 
 
@@ -37,11 +52,17 @@ int main(int arc, char *argv[]) {
     if (write(samefd, buf, numRead) != numRead)
       fatal("write() returned error or partial write occured");
   }
+
+  int dupfd = my_dup2(newfd, 993);
+  
+  
   if (numRead == -1)
     errExit("read");
   if (close(newfd) == -1)
     errExit("close output");
   if (close(samefd) == -1)
+    errExit("close output");
+  if (close(dupfd) == -1)
     errExit("close output");
   exit(EXIT_SUCCESS);
   
